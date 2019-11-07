@@ -128,26 +128,25 @@ int Converter::RGB2HSV(const Mat& sourceImage, Mat& destinationImage)
 			uint8_t green = sourceImage.at<Vec3b>(r, c)[1];
 			uint8_t red = sourceImage.at<Vec3b>(r, c)[2];
 
-			uint8_t V = max(max(blue, green), red);
-			float S = 0;
-			if (V != 0)
-				S = (float)(V - min(min(blue, green), red)) / V;
-			int H;
-			if (V == red)
-				H = 60 * (green - blue) / (V - min(min(blue, green), red));
-			else if (V == green)
-				H = 120 + 60 * (blue - red) / (V - min(min(blue, green), red));
-			else if (V == blue)
-				H = 240 + 60 * (red - green) / (V - min(min(blue, green), red));
+			uint8_t Value = max(max(blue, green), red);
+			float Saturation = 0;
+			if (Value != 0)
+				Saturation = (float)(Value - min(min(blue, green), red)) / Value;
+			int Hue;
+			if (Value == red)
+				Hue = 60 * (green - blue) / (Value - min(min(blue, green), red));
+			else if (Value == green)
+				Hue = 120 + 60 * (blue - red) / (Value - min(min(blue, green), red));
+			else if (Value == blue)
+				Hue = 240 + 60 * (red - green) / (Value - min(min(blue, green), red));
+			if (Hue < 0)
+				Hue += 360;
 
-			if (H < 0)
-				H += 360;
-
-			S *= 255;
-			H /= 2;
-			destinationImage.at<Vec3b>(r, c)[0] = H;
-			destinationImage.at<Vec3b>(r, c)[1] = (uint8_t)S;
-			destinationImage.at<Vec3b>(r, c)[2] = V;
+			Saturation *= 255;
+			Hue /= 2;
+			destinationImage.at<Vec3b>(r, c)[0] = Hue;
+			destinationImage.at<Vec3b>(r, c)[1] = (uint8_t)Saturation;
+			destinationImage.at<Vec3b>(r, c)[2] = Value;
 		}
 	}
 	return 0;
@@ -155,6 +154,62 @@ int Converter::RGB2HSV(const Mat& sourceImage, Mat& destinationImage)
 
 inline int Converter::HSV2RGB(const Mat& sourceImage, Mat& destinationImage)
 {
+	if (sourceImage.channels() != 3)
+		return 1;
+	for (int r = 0; r < sourceImage.rows; r++)
+	{
+		for(int c=0;c <sourceImage.cols;c++)
+		{
+			int Hue = sourceImage.at<Vec3b>(r, c)[0];
+			double Saturation = sourceImage.at<Vec3b>(r, c)[1];
+			double Value = sourceImage.at<Vec3b>(r, c)[2];
+
+			double C = Saturation * Value;
+			double X = C * (1 - abs(fmod(Hue / 60.0, 2) - 1));
+			double m = Value - C;
+			uint8_t R, G, B;
+			if (Hue >= 0 && Hue < 60)
+			{
+				R = C;
+				G = X;
+				B = 0;
+			}
+			else if (Hue >= 60 && Hue < 120)
+			{
+				R = X;
+				G = C;
+				B = 0;
+			}
+			else if (Hue >= 120 && Hue < 180)
+			{
+				R = 0;
+				G = C;
+				B = X;
+			}
+			else if (Hue >= 180 && Hue < 240)
+			{
+				R = 0;
+				G = X;
+				B = C;
+			}
+			else if (Hue >= 240 && Hue < 300)
+			{
+				R = X;
+				G = 0;
+				B = C;
+			}
+			else
+			{
+				R = C;
+				G = 0;
+				B = X;
+			}
+			destinationImage.at<Vec3b>(r, c)[0] = (uint8_t)(R + m) * 255;
+			destinationImage.at<Vec3b>(r, c)[1] = (uint8_t)(G + m) * 255;
+			destinationImage.at<Vec3b>(r, c)[2] = (uint8_t)(B + m) * 255;
+		}
+	}
+	
 	return 0;
 }
 
