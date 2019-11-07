@@ -29,9 +29,56 @@ int main(int argc, char *argv[])
 			cvtColor(origin, exam, CV_RGB2GRAY);
 			imshow("Exam Image", exam);
 		}
+		else if (strcmp(argv[1], "--gray2rgb") == 0)
+		{
+			//Show Original image
+			imshow("Original Image", origin);
+
+			Mat gray2rgb;
+			//Xử lý ảnh bằng hàm tự viết
+			if (converter.Convert(origin, gray2rgb, 2) == 1) {
+				cout << "Error ...";
+			};
+			imshow("Result Image", gray2rgb);
+
+			//Dùng công cụ open CV tạo ra ảnh ví dụ
+			Mat exam;
+			cvtColor(origin, exam, CV_GRAY2BGR);
+			imshow("Exam Image", exam);
+		}
 		else if (strcmp(argv[1], "--rgb2hsv") == 0)
 		{
+			//Show Original image
+			imshow("Original Image", origin);
 
+			Mat rgb2gray;
+			//Xử lý ảnh bằng hàm tự viết
+			if (converter.Convert(origin, rgb2gray, 2) == 1) {
+				cout << "Error ...";
+			};
+			imshow("Result Image", rgb2gray);
+
+			//Dùng công cụ open CV tạo ra ảnh ví dụ
+			Mat exam;
+			cvtColor(origin, exam, CV_BGR2HSV);
+			imshow("Exam Image", exam);
+		}
+		else if (strcmp(argv[1], "--hsv2rgb") == 0)
+		{
+			//Show Original image
+			imshow("Original Image", origin);
+
+			Mat hsv2rgb;
+			//Xử lý ảnh bằng hàm tự viết
+			if (converter.Convert(origin, hsv2rgb, 3) == 1) {
+				cout << "Error ...";
+			};
+			imshow("Result Image", hsv2rgb);
+
+			//Dùng công cụ open CV tạo ra ảnh ví dụ
+			Mat exam;
+			cvtColor(origin, exam, CV_HSV2BGR);
+			imshow("Exam Image", exam);
 		}
 		else if (strcmp(argv[1], "--bright") == 0)
 		{
