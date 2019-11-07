@@ -1,4 +1,10 @@
 ﻿#pragma once
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <algorithm>
+using namespace std;
+using namespace cv;
 /*
  Lớp base dùng để nội suy màu của 1 pixel
 */
@@ -23,6 +29,12 @@ public:
 	~PixelInterpolate();
 };
 
+PixelInterpolate::PixelInterpolate()
+{}
+
+PixelInterpolate::~PixelInterpolate()
+{}
+
 /*
 Lớp nội suy màu theo phương pháp song tuyến tính
 */
@@ -36,6 +48,44 @@ public:
 	BilinearInterpolate();
 	~BilinearInterpolate();
 };
+
+BilinearInterpolate::BilinearInterpolate()
+{}
+
+BilinearInterpolate::~BilinearInterpolate()
+{}
+
+
+/*
+	Hàm tính giá trị màu của ảnh kết quả từ nội suy màu trong ảnh gốc và gán màu được nội suy trong ảnh kết quả
+	Tham số
+		- (tx,ty): tọa độ thực của ảnh gốc sau khi thực hiện phép biến đổi affine
+		- pSrc: con trỏ ảnh gốc
+		- srcWidthStep: widthstep của ảnh gốc
+		- nChannels: số kênh màu của ảnh gốc
+		- pDstRow: con trỏ của ảnh kết quả đến pixel đang muốn nội suy màu
+
+	*/
+void BilinearInterpolate::Interpolate(float tx, float ty, uchar* pSrc,
+	int srcWidthStep, int nChannels, uchar* pDstRow)
+{
+	int l = (int)floor(tx);
+	int k = (int)floor(ty);
+	float a = tx - l;
+	float b = ty - k;
+	
+
+	l *= nChannels;
+
+	pSrc += (k*srcWidthStep);
+
+	for (int i = 0; i < nChannels; i++)
+	{
+		*(pDstRow + i) = (uchar)((1 - a)*(1 - b)*pSrc[l + i] + a * (1 - b)*(pSrc + srcWidthStep)[l + i] +
+			b * (1 - a)*pSrc[l + nChannels + i] + a * b*(pSrc + srcWidthStep)[l + nChannels + i]);
+	}
+
+}
 
 /*
 Lớp nội suy màu theo phương pháp láng giềng gần nhất
@@ -51,6 +101,21 @@ public:
 	~NearestNeighborInterpolate();
 };
 
+NearestNeighborInterpolate::NearestNeighborInterpolate()
+{}
+
+NearestNeighborInterpolate::~NearestNeighborInterpolate()
+{}
+
+void NearestNeighborInterpolate::Interpolate(
+	float tx, float ty,
+	uchar* pSrc, int srcWidthStep, int nChannels,
+	uchar* pDstRow)
+{
+
+}
+
+
 /*
 Lớp biểu diễn pháp biến đổi affine
 */
@@ -65,11 +130,88 @@ public:
 	//xây dựng matrix transform cho phép tỉ lệ theo hệ số sau đó nhân với ma trận hiện hành
 	void Scale(float sx, float sy);		
 	//transform 1 điểm (x,y) theo matrix transform hiện hành đã có
-	void TransformPoint(float &x, float &y); 
+	void TransformPoint(float &x, float &y);
+
+	// hàm nghịch đảo ma trận hiện hành
+	void Inverse();
 	
 	AffineTransform();
 	~AffineTransform();
 };
+
+AffineTransform::AffineTransform()
+{
+	_matrixTransform = Mat(3, 3, CV_32FC1, Scalar(0));
+}
+
+AffineTransform::~AffineTransform()
+{}
+
+void AffineTransform::Translate(float dx, float dy)
+{
+	_matrixTransform.at<float>(0, 0) = 1;
+	_matrixTransform.at<float>(1, 1) = 1;
+	_matrixTransform.at<float>(2, 2) = 1;
+	_matrixTransform.at<float>(0, 2) = dx;
+	_matrixTransform.at<float>(1, 2) = dy;
+}
+
+void AffineTransform::Rotate(float angle)
+{
+	_matrixTransform.at<float>(0, 0) = cosf(angle);
+	_matrixTransform.at<float>(0, 1) = -sinf(angle);
+	_matrixTransform.at<float>(1, 0) = sinf(angle);
+	_matrixTransform.at<float>(1, 1) = cosf(angle);
+	_matrixTransform.at<float>(2, 2) = 1;
+}
+
+void AffineTransform::Scale(float sx, float sy)
+{
+	_matrixTransform.at<float>(0, 0) = sx;
+	_matrixTransform.at<float>(1, 1) = sy;
+	_matrixTransform.at<float>(2, 2) = 1;
+}
+
+void AffineTransform::TransformPoint(float &x, float &y)
+{
+	x = (_matrixTransform.at<float>(0, 0) * x) +
+		(_matrixTransform.at<float>(0, 1) * y) +
+		_matrixTransform.at<float>(0, 2);
+
+	y = (_matrixTransform.at<float>(1, 0) * x) +
+		(_matrixTransform.at<float>(1, 1) * y) +
+		_matrixTransform.at<float>(1, 2);
+}
+
+void AffineTransform::Inverse()
+{
+	// Nếu là phép tịnh tiến thì đổi dấu giá trị tx, ty
+	float tx = _matrixTransform.at<float>(0, 2);
+	float ty = _matrixTransform.at<float>(1, 2);
+	if (tx != 0 && ty != 0)
+	{
+		_matrixTransform.at<float>(0, 2) = -tx;
+		_matrixTransform.at<float>(1, 2) = -ty;
+	}
+	else // Nếu là các phép biến đổi còn lại
+	{
+		// Thực hiện tìm ma trận khả nghịch 2x2 của ma trận con dòng 0, 1 và cột 0, 1
+		float a = _matrixTransform.at<float>(0, 0);
+		float b = _matrixTransform.at<float>(0, 1);
+		float c = _matrixTransform.at<float>(1, 0);
+		float d = _matrixTransform.at<float>(1, 1);
+
+		float M = a * d - b * c;
+
+		_matrixTransform.at<float>(0, 0) = d / M;
+		_matrixTransform.at<float>(0, 1) = -b / M;
+		_matrixTransform.at<float>(1, 0) = -c / M;
+		_matrixTransform.at<float>(1, 1) = a / M;
+
+	}
+}
+
+
 
 /*
 Lớp thực hiện phép biến đổi hình học trên ảnh
@@ -143,4 +285,69 @@ public:
 	GeometricTransformer();
 	~GeometricTransformer();
 };
+
+GeometricTransformer::GeometricTransformer()
+{}
+
+GeometricTransformer::~GeometricTransformer()
+{}
+
+int GeometricTransformer::Transform(const Mat &beforeImage, Mat &afterImage, 
+	AffineTransform* transformer, PixelInterpolate* interpolator)
+{
+
+	if (beforeImage.empty() == true || beforeImage.isContinuous() == false)
+		return 0;
+
+	// Phương pháp: Từ ảnh đích nội suy giá trị màu từ ảnh gốc
+
+	// Lấy ma trận nghịch đảo
+	transformer->Inverse();
+	Mat processedBeforeImage = beforeImage.clone();
+	Mat newColumn = beforeImage(Range::all(), Range(beforeImage.cols - 1, beforeImage.cols));
+	Mat newRow = beforeImage(Range(beforeImage.rows - 1, beforeImage.rows), Range::all());
+
+	// Thêm vào hàng cuối 1 phần tử
+	hconcat(newRow, Mat(1, 1, beforeImage.type(), Scalar(0)), newRow);
+
+	// Thêm vào ảnh gốc cột thứ cols + 1 với giá trị của cột cols -1
+	hconcat(processedBeforeImage, newColumn, processedBeforeImage);
+	// Thêm vào ảnh gốc dòng thứ rows + 1 với giá trị của dòng rows - 1
+	vconcat(processedBeforeImage, newRow, processedBeforeImage);
+
+	uchar* data = processedBeforeImage.data;
+	
+	int stepWidth = (int)processedBeforeImage.step;
+	int nChannels = processedBeforeImage.channels();
+	for (int r = 0; r < afterImage.rows; r++)
+	{
+		for (int c = 0; c < afterImage.cols; c++)
+		{
+			float x = (float)c;
+			float y = (float)r;
+
+			// Thực hiện phép biến đổi affine ngược
+			transformer->TransformPoint(x, y);
+
+			// Nội suy giá trị màu
+			interpolator->Interpolate(x, y, data, stepWidth,
+				nChannels, afterImage.ptr<uchar>(r, c));
+		}
+	}
+	return 1;
+}
+
+int GeometricTransformer::Scale(const Mat &srcImage,
+	Mat &dstImage,
+	float sx, float sy,
+	PixelInterpolate* interpolator)
+{
+	if (srcImage.empty() == true)
+		return 0;
+	AffineTransform* transformer = new AffineTransform;
+	transformer->Scale(sx, sy);
+	this->Transform(srcImage, dstImage, transformer, interpolator);
+	delete transformer;
+	return 1;
+}
 

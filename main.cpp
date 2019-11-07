@@ -1,6 +1,7 @@
 ﻿#include "Converter.h"
 #include "ColorTransformer.h"
 #include "EdgeDetector.h"
+#include "GeometricTransformer.h"
 
 int main(int argc, char *argv[])
 {
@@ -99,10 +100,28 @@ int main(int argc, char *argv[])
 				imshow("Detect edge by prewitt", destinationImage);
 
 			}
-			else
-			{
+		}
+		else if (strcmp(argv[1], "--zoom") == 0)
+		{
+			PixelInterpolate* interpolator = NULL;
 
+			if (strcmp(argv[3], "--bl") == 0)
+				interpolator = new BilinearInterpolate;
+			else if (strcmp(argv[3], "--nn") == 0)
+				interpolator = new NearestNeighborInterpolate;
+
+			if (interpolator != NULL)
+			{
+				float sx = (float)atof(argv[4]);
+				// float sy = (float)atof(argv[5]);
+				GeometricTransformer transformer;
+				Mat zoomedImage = Mat(int(origin.rows * sx), int(origin.cols * sx), origin.type(), Scalar(0));
+				transformer.Scale(origin, zoomedImage, sx, sx, interpolator);
+
+				imshow("Original", origin);
+				imshow("Zoom", zoomedImage);
 			}
+
 		}
 		else
 		{
