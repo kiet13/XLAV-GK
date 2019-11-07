@@ -13,7 +13,20 @@ int main(int argc, char *argv[])
 		ColorTransformer tranform;
 		if (strcmp(argv[1], "--rgb2gray") == 0)
 		{
-			
+			//Show Original image
+			imshow("Original Image", origin);
+
+			Mat rgb2gray;
+			//Xử lý ảnh bằng hàm tự viết
+			if (converter.Convert(origin, rgb2gray, 0) == 1) {
+				cout << "Error ...";
+			};
+			imshow("Result Image", rgb2gray);
+
+			//Dùng công cụ open CV tạo ra ảnh ví dụ
+			Mat exam;
+			cvtColor(origin, exam, CV_RGB2GRAY);
+			imshow("Exam Image", exam);
 		}
 		else if (strcmp(argv[1], "--rgb2hsv") == 0)
 		{
