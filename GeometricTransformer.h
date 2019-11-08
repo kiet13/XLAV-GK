@@ -131,7 +131,8 @@ public:
 	void Scale(float sx, float sy);		
 	//transform 1 điểm (x,y) theo matrix transform hiện hành đã có
 	void TransformPoint(float &x, float &y);
-
+	// Xây dựng 1 matrix tranform cho phép xoay quanh trục Ox hay Oy sau đó nhân với ma trận hiện hành
+	void Flip(int Ox, int Oy);
 	// hàm nghịch đảo ma trận hiện hành
 	void Inverse();
 	
@@ -210,6 +211,20 @@ void AffineTransform::Inverse()
 
 	}
 }
+void AffineTransform::Flip(int Ox, int Oy)
+{
+	// Nếu quay quanh trục Ox thì Ox =1 và ngược lại
+	if (Ox == 1 && Oy == 0)
+	{
+		_matrixTransform.at<float>(0, 0) = 1;
+		_matrixTransform.at<float>(2, 2) = -1;
+	}
+	if (Oy == 1 && Ox == 0)
+	{
+		_matrixTransform.at<float>(0, 0) = -1;
+		_matrixTransform.at<float>(2, 2) = 1;
+	}
+}
 
 
 
@@ -281,7 +296,18 @@ public:
 		Mat &dstImage, 
 		float sx, float sy, 
 		PixelInterpolate* interpolator);
-
+	/*
+	Hàm xoay quanh trục Ox, Oy
+	Tham số: 
+	 - srcImage: ảnh input
+	 - desImage: ảnh out put
+	 - interpolator : biến chỉ định phương pháp nội suy màu
+	 - Ox, Oy : nếu xoay quanh trục Ox thì Ox bằng 1 và ngược lại
+	Trả về :
+	 - 0: Nếu ảnh input không tồn tại hoặc không thực hiện được phép biến đổi
+	 - 1: Nếu biến đổi thành công
+	*/
+	int Flip(const Mat& srcImage, Mat& desImage,int Ox, int Oy,PixelInterpolate* interpolator);
 	GeometricTransformer();
 	~GeometricTransformer();
 };
@@ -349,5 +375,16 @@ int GeometricTransformer::Scale(const Mat &srcImage,
 	this->Transform(srcImage, dstImage, transformer, interpolator);
 	delete transformer;
 	return 1;
+}
+int GeometricTransformer::Flip(const Mat& srcImage, Mat& desImage,int Ox,int Oy, PixelInterpolate* interpolator)
+{
+	if (srcImage.empty() == true)
+		return 0;
+	AffineTransform* transformer = new AffineTransform;
+	transformer->Flip(Ox, Oy);
+	this->Transform(srcImage, desImage, transformer, interpolator);
+	delete transformer;
+	return 1;
+
 }
 
