@@ -34,6 +34,33 @@ int EdgeDetector::DetectEdge(const Mat& sourceImage, Mat& destinationImage, int 
 	if (method == 1)
 	{
 		// Sobel
+		// build Sobel mask
+		
+		Mat horizontal, vertical;
+		Convolution prewitt;
+		vector<float> Gx = { 1, 0, -1, 2, 0, -2, 1, 0, -1 };
+		prewitt.SetKernel(Gx, kWidth, kHeight);
+		prewitt.DoConvolution(sourceImage, vertical);
+
+		vector<float> Gy = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
+		prewitt.SetKernel(Gy, kWidth, kHeight);
+		prewitt.DoConvolution(sourceImage, horizontal);
+
+
+		destinationImage = Mat(sourceImage.rows, sourceImage.cols, CV_8UC1); // des image has 1 channel
+		for (int r = 0; r < destinationImage.rows; r++)
+		{
+			for (int c = 0; c < destinationImage.cols; c++)
+			{
+				float X = vertical.at<uint8_t>(r, c);
+				float Y = horizontal.at<uint8_t>(r, c);
+				uint8_t mag = (uint8_t)sqrtf(X * X + Y * Y);
+				if (mag > threshold)
+					destinationImage.at<uint8_t>(r, c) = 255;
+				else
+					destinationImage.at< uint8_t>(r, c) = 0;
+			}
+		}
 	}
 	else if (method == 2)
 	{
