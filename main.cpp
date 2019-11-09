@@ -137,16 +137,15 @@ int main(int argc, char *argv[])
 		}
 		else if (strcmp(argv[1], "--prewitt") == 0)
 		{
-			if (origin.channels() == 1)
-			{
-				// Edge dectection by Prewitt
-				EdgeDetector prewitt;
-				Mat destinationImage;
-				prewitt.DetectEdge(origin, destinationImage, 3, 3, 2);
-				imshow("Original", origin);
-				imshow("Detect edge by prewitt", destinationImage);
+			Mat grayOrigin;
+			converter.RGB2GrayScale(origin, grayOrigin);
+			// Edge dectection by Prewitt
+			EdgeDetector prewitt;
+			Mat destinationImage;
+			prewitt.DetectEdge(grayOrigin, destinationImage, 3, 3, 2);
+			imshow("Original", origin);
+			imshow("Detect edge by prewitt", destinationImage);
 
-			}
 		}
 		else if (strcmp(argv[1], "--zoom") == 0)
 		{
@@ -160,10 +159,10 @@ int main(int argc, char *argv[])
 			if (interpolator != NULL)
 			{
 				float sx = (float)atof(argv[4]);
-				// float sy = (float)atof(argv[5]);
+				float sy = (float)atof(argv[5]);
 				GeometricTransformer transformer;
-				Mat zoomedImage = Mat(int(origin.rows * sx), int(origin.cols * sx), origin.type(), Scalar(0));
-				transformer.Scale(origin, zoomedImage, sx, sx, interpolator);
+				Mat zoomedImage = Mat(int(origin.rows * sy), int(origin.cols * sx), origin.type(), Scalar(0));
+				transformer.Scale(origin, zoomedImage, sx, sy, interpolator);
 
 				imshow("Original", origin);
 				imshow("Zoom", zoomedImage);
