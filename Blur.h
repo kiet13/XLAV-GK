@@ -40,22 +40,47 @@ int Blur::BlurImage(const Mat& sourceImage, Mat& destinationImage, int kWidth, i
 	{
 		double size = (double)kWidth * (double)kHeight;
 		vector<float> kernel;
-		float sigma = 1;
+		float sigma = 1.03;
 
 		// tao kernel
 		for (int i = 0; i < size; i++)
 		{
-			int row = i / kWidth - kWidth / 2;
+			int row = i / kWidth - kWidth / 2;  // row = ..., -2, -1, 0, 1, 2, ...
 			int col = i % kHeight - kHeight / 2;
-			float h = exp(-(float)(col * col + row * row) / (float)(2 * sigma * sigma)) / (sqrt(2 * 3.1415) * sigma);
+			float h = exp(-(float)(col * col + row * row) / (float)(2 * sigma * sigma)) / ((2 * 3.1415) * sigma * sigma);
 			kernel.push_back(h);
 		}
 
-		// thuc hien tich chap
-		Convolution gauss;
-		gauss.SetKernel(kernel, kWidth, kHeight);
+		vector<int> cIndices = getIndices(kWidth); // {...,-k,...-2,-1,0,1,2,...,k,...}
+		vector<int> rIndices = getIndices(kHeight);
+		for (int r = 0; r < destinationImage.rows; r++)
+		{
+			for (int c = 0; c < destinationImage.cols; c++)
+			{
+				float gx = 0;
+				for (int i = 0; i < size; i++)
+				{
+					int kc = cIndices[i / kWidth]; // index in the column of kernel
+					int kr = rIndices[i % kHeight]; // index in the row of kernel
 
-		gauss.DoConvolution(sourceImage, destinationImage);
+					int sc = c - kc; // index in the column of source image
+					int sr = r - kr; // index in the row of source image
+
+					// Ignore image points out of the boundary
+					if (sr < 0 || sr >= sourceImage.rows)
+						continue;
+
+					if (sc < 0 || sc >= sourceImage.cols)
+						continue;
+
+					gx += kernel[i] * sourceImage.at<uint8_t>(sr, sc);
+				}
+				// Update destination image
+				gx = gx > 255 ? 255 : gx;
+				gx = gx < 0 ? 0 : gx;
+				destinationImage.at<uint8_t>(r, c) = gx;
+			}
+		}
 
 		if (sourceImage.empty() || destinationImage.empty())
 			return 0;
