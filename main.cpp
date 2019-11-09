@@ -147,6 +147,17 @@ int main(int argc, char *argv[])
 			imshow("Detect edge by prewitt", destinationImage);
 
 		}
+		else if (strcmp(argv[1], "--sobel") == 0)
+		{
+		Mat grayOrigin;
+		converter.RGB2GrayScale(origin, grayOrigin);
+		// Edge dectection by Prewitt
+		EdgeDetector sobel;
+		Mat destinationImage;
+		sobel.DetectEdge(grayOrigin, destinationImage, 3, 3, 1);
+		imshow("Original", origin);
+		imshow("Detect edge by sobel", destinationImage);
+		}
 		else if (strcmp(argv[1], "--zoom") == 0)
 		{
 			PixelInterpolate* interpolator = NULL;
