@@ -173,7 +173,26 @@ int main(int argc, char *argv[])
 		}
 		else if (strcmp(argv[1], "--flip") == 0)
 		{
-			
+			PixelInterpolate* interpolator = NULL;
+			if (strcmp(argv[3], "--bl") == 0)
+			{
+				interpolator = new BilinearInterpolate;
+			}
+			else if (strcmp(argv[3], "--nn") == 0)
+			{
+				interpolator = new NearestNeighborInterpolate;
+			}
+			if (interpolator != NULL)
+			{
+				int Ox = atoi(argv[4]);
+				int Oy = atoi(argv[5]);
+				GeometricTransformer transformer;
+				Mat FlipedImage = Mat(int(origin.rows * Ox), int(origin.cols * Oy), origin.type(), Scalar(0));
+				transformer.Flip(origin, FlipedImage, Ox, Oy, interpolator);
+				
+				imshow("Original", origin);
+				imshow("Fliped Image", FlipedImage);
+			}
 		}
 		else
 		{
