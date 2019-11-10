@@ -124,16 +124,20 @@ int ColorTransformer::ChangeBrighness(const Mat& sourceImage, Mat& destinationIm
 	int nr = sourceImage.rows; // number of lines
 	int nc = sourceImage.cols * sourceImage.channels();
 
-	uchar lookup[256];
-	for (int i = 0; i < 256; i++)
+	int lookup[256];
+	for (int i = 0; i < 255; i++) {
 		lookup[i] = i + b;
+		if (lookup[i] > 255) lookup[i] = 255;
+		if (lookup[i] < 0) lookup[i] = 0;
+	}
 
 	for (int y = 0; y < nr; y++) {
-		const uchar* datasrc = sourceImage.ptr<uchar>(y);
-		uchar* datades = destinationImage.ptr<uchar>(y);
 		for (int x = 0; x < nc; x++)
 		{
-			datades[x] = lookup[datasrc[x]];
+			Scalar intensity = sourceImage.at<uchar>(y, x);
+			int s = intensity[0];
+			s = lookup[s];
+			destinationImage.at<uchar>(y, x) = s;
 		}
 	}
 
@@ -145,54 +149,22 @@ int ColorTransformer::ChangeBrighness(const Mat& sourceImage, Mat& destinationIm
 
 int ColorTransformer::ChangeContrast(const Mat& sourceImage, Mat& destinationImage, float c)
 {
-	if (sourceImage.channels() != 3 && sourceImage.channels() != 1)
+	if (sourceImage.empty() == true || sourceImage.isContinuous() == false)
 		return 0;
-	if (sourceImage.channels() == 3)
+	int nc = sourceImage.cols * sourceImage.channels();
+
+	destinationImage = sourceImage.clone();
+	for (int i = 0; i < sourceImage.rows; i++)
 	{
-		destinationImage = Mat(sourceImage.rows, sourceImage.cols, CV_8UC3, Scalar(0));
-		for (int i = 0; i < sourceImage.rows; i++)
+		uchar* data = destinationImage.ptr<uchar>(i);
+		for (int j = 0; j < nc; j++)
 		{
-			for (int j = 0; j < sourceImage.cols; j++)
-			{
-				float newB = sourceImage.at<Vec3b>(i, j)[0] * c;
-				float newG = sourceImage.at<Vec3b>(i, j)[1] * c;
-				float newR = sourceImage.at<Vec3b>(i, j)[2] * c;
-				if (newB > 255)
-					newB = 255;
-				if (newG > 255)
-					newG = 255;
-				if (newR = 255)
-					newR = 255;
-
-				if (newB < 0)
-					newB = 0;
-				if (newG < 0)
-					newG = 0;
-				if (newR < 0)
-					newR = 0;
-
-				destinationImage.at<Vec3b>(i, j)[0] = (uint8_t)newB;
-				destinationImage.at<Vec3b>(i, j)[1] = (uint8_t)newG;
-				destinationImage.at<Vec3b>(i, j)[2] = (uint8_t)newR;
-			}
-		}
-	}
-	else if (sourceImage.channels() == 1)
-	{
-		destinationImage = Mat(sourceImage.rows, sourceImage.cols, CV_8UC1);
-		for (int i = 0; i < sourceImage.rows; i++)
-		{
-			for (int j = 0; j < sourceImage.cols; j++)
-			{
-				float newValue = sourceImage.at<uint8_t>(i, j) * c;
-				if (newValue > 255)
-					newValue = 255;
-
-				if (newValue < 0)
-					newValue = 0;
-
-				destinationImage.at<uint8_t>(i, j) = (uint8_t)newValue;
-			}
+			float newValue = data[j] * c;
+			if (newValue > 255)
+				newValue = 255;
+			if (newValue < 0)
+				newValue = 0;
+			data[j] = (uint8_t)newValue;
 		}
 	}
 	return 1;
