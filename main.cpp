@@ -151,6 +151,16 @@ int main(int argc, char *argv[])
 			imshow("Detect edge by prewitt", destinationImage);
 
 		}
+		else if (strcmp(argv[1], "--laplace") == 0)
+		{
+				Mat grayOrigin;
+				converter.RGB2GrayScale(origin, grayOrigin);
+				EdgeDetector laplace;
+				Mat destiantionImage;
+				laplace.DetectEdge(grayOrigin, destiantionImage, 3, 3, 3);
+				imshow("Original", origin);
+				imshow("Detect edge by laplace", destiantionImage);
+		}
 		else if (strcmp(argv[1], "--rotateN") == 0)
 		{
 		imshow("Original", origin);
