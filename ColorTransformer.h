@@ -124,16 +124,20 @@ int ColorTransformer::ChangeBrighness(const Mat& sourceImage, Mat& destinationIm
 	int nr = sourceImage.rows; // number of lines
 	int nc = sourceImage.cols * sourceImage.channels();
 
-	uchar lookup[256];
-	for (int i = 0; i < 256; i++)
+	int lookup[256];
+	for (int i = 0; i < 255; i++) {
 		lookup[i] = i + b;
+		if (lookup[i] > 255) lookup[i] = 255;
+		if (lookup[i] < 0) lookup[i] = 0;
+	}
 
 	for (int y = 0; y < nr; y++) {
-		const uchar* datasrc = sourceImage.ptr<uchar>(y);
-		uchar* datades = destinationImage.ptr<uchar>(y);
 		for (int x = 0; x < nc; x++)
 		{
-			datades[x] = lookup[datasrc[x]];
+			Scalar intensity = sourceImage.at<uchar>(y, x);
+			int s = intensity[0];
+			s = lookup[s];
+			destinationImage.at<uchar>(y, x) = s;
 		}
 	}
 
