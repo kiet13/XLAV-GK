@@ -67,6 +67,19 @@ int EdgeDetector::DetectEdge(const Mat& sourceImage, Mat& destinationImage, int 
 	else if (method == 3)
 	{
 		vector<float> G = { 1,1,1,1,-8,1,1,1,1 };
+		Convolution laplace;
+		laplace.SetKernel(G, kWidth, kHeight);
+		laplace.DoConvolution(sourceImage, destinationImage);
+		destinationImage = Mat(sourceImage.rows, sourceImage.cols, CV_8UC1);
+		for (int y = 1; y < sourceImage.rows - 1; y++) {
+			for (int x = 1; x < sourceImage.cols - 1; x++) {
+				int sum = sourceImage.at<uint8_t>(y - 1, x) + sourceImage.at<uint8_t>(y + 1, x) + sourceImage.at<uint8_t>(y, x - 1) + sourceImage.at<uint8_t>(y, x + 1)
+					- 4 * sourceImage.at<uint8_t>(y, x);
+				sum = sum > 255 ? 255 : sum;
+				sum = sum < 0 ? 0 : sum;
+				destinationImage.at<uint8_t>(y, x) = sum;
+			}
+		}
 	}
 
 	return 0;
