@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Convolution.h"
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -41,26 +42,111 @@ int Blur::BlurImage(const Mat& sourceImage, Mat& destinationImage, int kWidth, i
 		//Ktra ảnh input
 		if (sourceImage.empty())
 			return 1;
-		if (kWidth % 2 != 0 && kHeight % 2 != 0)
-		{
-			double size = (double)kWidth * (double)kHeight;
-			vector<float> kernel;
+		// Kiểm tra ảnh input phải là ảnh xám ko?
+		assert(sourceImage.type() != CV_8UC1);
+		// Kiểm tra kWidth và kHeight có lẻ không
+		if ((kWidth % 2 == 0) || (kHeight % 2 == 0))
+			return 1;
+		// Kiểm tra KWidth và kHeight > 1
+		if ((kWidth < 1) || (kHeight < 1))
+			return 1;
 
+		Mat img_temp;
 
-			// Tạo Kernel
-			float h = 1 / size;
-			for (int i = 0; i < size; i++)
-			{
-				kernel.push_back(h);
+		//Thêm cột, dòng trống vào để tính biên
+		int paddingWidth = int((kWidth - 1) / 2);
+		int paddingHeight = int((kHeight - 1) / 2);
+		copyMakeBorder(sourceImage, img_temp, paddingHeight, paddingHeight, paddingWidth, paddingWidth, BORDER_CONSTANT, 0);
+
+		int mean = 0.0;
+		int final = 0;
+		int nrows, ncols;
+
+		nrows = sourceImage.size().height;
+		ncols = sourceImage.size().width;
+
+		//Sửa ảnh kết quả
+		destinationImage = Mat(nrows, ncols, CV_8UC1);
+
+		//Duyệt qua từng pixel ảnh
+		for (unsigned int j = paddingWidth; j < nrows + paddingWidth; j++) {
+			for (unsigned int z = paddingHeight; z < ncols + paddingHeight; z++) {
+				mean = 0.0;
+				//Duyệt qua vùng kernel
+				for (int x = -paddingWidth; x <= paddingWidth; x++) {
+					for (int y = -paddingHeight; y <= paddingHeight; y++) {
+						mean += img_temp.at<uchar>(j + x, z + y);
+					}
+				}
+
+				mean = mean / (kWidth * kHeight);
+				final = round(mean);
+
+				//Trả kết quả
+				destinationImage.at<uchar>(j - paddingWidth, z - paddingHeight) = (uchar)final;
 			}
-
-			//Set Kernel và lọc ảnh
-			Convolution x;
-			x.SetKernel(kernel, kWidth, kHeight);
-			x.DoConvolution(sourceImage, destinationImage);
 		}
-		else return 1;
 
+		if (destinationImage.empty())
+			return 1;
+
+		return 0;
+	}
+	//Lọc trung vị
+	if (method == 1)
+	{
+		//Ktra ảnh input
+		if (sourceImage.empty())
+			return 1;
+		// Kiểm tra ảnh input phải là ảnh xám ko?
+		assert(sourceImage.type() != CV_8UC1);
+		// Kiểm tra kWidth và kHeight có lẻ không
+		if ((kWidth % 2 == 0) || (kHeight % 2 == 0))
+			return 1;
+		// Kiểm tra KWidth và kHeight > 1
+		if ((kWidth < 1) || (kHeight < 1))
+			return 1;
+
+		Mat img_temp;
+
+		//Thêm cột, dòng trống vào để tính biên
+		int paddingWidth = int((kWidth - 1) / 2);
+		int paddingHeight = int((kHeight - 1) / 2);
+		copyMakeBorder(sourceImage, img_temp, paddingHeight, paddingHeight, paddingWidth, paddingWidth, BORDER_CONSTANT, 0);
+
+		//Tạo kernel
+		int size = kWidth * kHeight;
+		vector<int> kernel;
+		for (int i = 0; i < size; i++)
+		{
+			kernel.push_back(0);
+		}
+		int k;
+		int final = int(size / 2 + 1);
+		int nrows, ncols;
+
+		nrows = sourceImage.size().height;
+		ncols = sourceImage.size().width;
+
+		//Sửa ảnh kết quả
+		destinationImage = Mat(nrows, ncols, CV_8UC1);
+
+		//Duyệt qua từng pixel ảnh
+		for (unsigned int j = paddingWidth; j < nrows + paddingWidth; j++) {
+			for (unsigned int z = paddingHeight; z < ncols + paddingHeight; z++) {
+				k = 0;
+				//Duyệt qua vùng kernel
+				for (int x = -paddingWidth; x <= paddingWidth; x++) {
+					for (int y = -paddingHeight; y <= paddingHeight; y++) {
+						kernel[k] = img_temp.at<uchar>(j + x, z + y);
+						k++;
+					}
+				}
+				quicksort(kernel, 0, size - 1);
+				//Trả kết quả
+				destinationImage.at<uchar>(j - paddingWidth, z - paddingHeight) = (uchar)kernel[final];
+			}
+		}
 
 		if (destinationImage.empty())
 			return 1;

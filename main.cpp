@@ -167,6 +167,24 @@ int main(int argc, char *argv[])
 		imshow("Result (Mean)", mean);
 
 		}
+		else if (strcmp(argv[1], "--median") == 0)
+		{
+		//Hiện ảnh gốc
+		imshow("Original", origin);
+
+		//Xử lý tham số truyền vào
+		int kWidth = int(atof(argv[3]));
+		int kHeigth = int(atof(argv[4]));
+
+		////Xử lý bằng Blur
+		Mat median;
+		Blur blur;
+		if (blur.BlurImage(origin, median, kWidth, kHeigth, 1) == 1)
+			cout << "Error..." << endl;
+
+		////Hiện ảnh kết quả
+		imshow("Result (Median)", median);
+		}
 		else if (strcmp(argv[1], "--gauss") == 0)
 		{
 		//Hiện ảnh gốc
