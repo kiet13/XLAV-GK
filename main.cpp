@@ -2,6 +2,7 @@
 #include "ColorTransformer.h"
 #include "EdgeDetector.h"
 #include "GeometricTransformer.h"
+#include "Blur.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,31 +33,32 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[1], "--gray2rgb") == 0)
 		{
 			//Show Original image
+			origin = imread(fileinput, CV_LOAD_IMAGE_GRAYSCALE);
 			imshow("Original Image", origin);
 
-			Mat gray2rgb;
+			Mat gray2rgb = origin.clone();
 			//Xử lý ảnh bằng hàm tự viết
-			if (converter.Convert(origin, gray2rgb, 2) == 1) {
+			/*if (converter.Convert(origin, gray2rgb, 1) == 1) {
 				cout << "Error ...";
-			};
+			};*/
 			imshow("Result Image", gray2rgb);
 
 			//Dùng công cụ open CV tạo ra ảnh ví dụ
-			Mat exam;
+			/*Mat exam;
 			cvtColor(origin, exam, CV_GRAY2BGR);
-			imshow("Exam Image", exam);
+			imshow("Exam Image", exam);*/
 		}
 		else if (strcmp(argv[1], "--rgb2hsv") == 0)
 		{
 			//Show Original image
 			imshow("Original Image", origin);
 
-			Mat rgb2gray;
+			Mat rgb2hsv;
 			//Xử lý ảnh bằng hàm tự viết
-			if (converter.Convert(origin, rgb2gray, 2) == 1) {
+			if (converter.Convert(origin, rgb2hsv, 2) == 1) {
 				cout << "Error ...";
 			};
-			imshow("Result Image", rgb2gray);
+			imshow("Result Image", rgb2hsv);
 
 			//Dùng công cụ open CV tạo ra ảnh ví dụ
 			Mat exam;
@@ -145,6 +147,42 @@ int main(int argc, char *argv[])
 			prewitt.DetectEdge(grayOrigin, destinationImage, 3, 3, 2);
 			imshow("Original", origin);
 			imshow("Detect edge by prewitt", destinationImage);
+
+		}
+		else if (strcmp(argv[1], "--mean") == 0)
+		{
+		//Hiện ảnh gốc
+		imshow("Original", origin);
+
+		//Xử lý tham số truyền vào
+		int kWidth = int(atof(argv[3]));
+		int kHeigth = int(atof(argv[4]));
+
+		//Xử lý bằng Blur
+		Mat mean;
+		Blur blur;
+		blur.BlurImage(origin, mean, kWidth, kHeigth, 0);
+
+		//Hiện ảnh kết quả
+		imshow("Result (Mean)", mean);
+
+		}
+		else if (strcmp(argv[1], "--gauss") == 0)
+		{
+		//Hiện ảnh gốc
+		imshow("Original", origin);
+
+		//Xử lý tham số truyền vào
+		int kWidth = int(atof(argv[3]));
+		int kHeigth = int(atof(argv[4]));
+
+		//Xử lý bằng Blur
+		Mat mean;
+		Blur blur;
+		blur.BlurImage(origin, mean, kWidth, kHeigth, 2);
+
+		//Hiện ảnh kết quả
+		imshow("Result (Gauss)", mean);
 
 		}
 		else if (strcmp(argv[1], "--sobel") == 0)

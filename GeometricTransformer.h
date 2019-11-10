@@ -112,7 +112,13 @@ void NearestNeighborInterpolate::Interpolate(
 	uchar* pSrc, int srcWidthStep, int nChannels,
 	uchar* pDstRow)
 {
+	int l = (int)round(tx);
+	int k = (int)round(ty);
 
+	for (int i = 0; i < nChannels; i++)
+	{
+		*(pDstRow + i) = (uchar)pSrc[l * i + k * srcWidthStep];
+	}
 }
 
 

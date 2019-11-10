@@ -35,6 +35,38 @@ Blur::~Blur()
 
 int Blur::BlurImage(const Mat& sourceImage, Mat& destinationImage, int kWidth, int kHeight, int method)
 {
+	// Lọc trung bình
+	if (method == 0)
+	{
+		//Ktra ảnh input
+		if (sourceImage.empty())
+			return 1;
+		if (kWidth % 2 != 0 && kHeight % 2 != 0)
+		{
+			double size = (double)kWidth * (double)kHeight;
+			vector<float> kernel;
+
+
+			// Tạo Kernel
+			float h = 1 / size;
+			for (int i = 0; i < size; i++)
+			{
+				kernel.push_back(h);
+			}
+
+			//Set Kernel và lọc ảnh
+			Convolution x;
+			x.SetKernel(kernel, kWidth, kHeight);
+			x.DoConvolution(sourceImage, destinationImage);
+		}
+		else return 1;
+
+
+		if (destinationImage.empty())
+			return 1;
+
+		return 0;
+	}
 	// lam mo bang toan tu Gaussian
 	if (method == 2)
 	{
