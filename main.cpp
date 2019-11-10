@@ -171,7 +171,18 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[3], "--nn") == 0)
 			interpolator = new NearestNeighborInterpolate;
 
-
+		}
+		else if (strcmp(argv[1], "--sobel") == 0)
+		{
+			Mat grayOrigin;
+			converter.RGB2GrayScale(origin, grayOrigin);
+			// Edge dectection by Prewitt
+			EdgeDetector sobel;
+			Mat destinationImage;
+			sobel.DetectEdge(grayOrigin, destinationImage, 3, 3, 1);
+			imshow("Original", origin);
+			imshow("Detect edge by sobel", destinationImage);
+		}
 
 		if (interpolator != NULL)
 		{
