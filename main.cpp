@@ -3,6 +3,8 @@
 #include "ColorTransformer.h"
 #include "EdgeDetector.h"
 #include "GeometricTransformer.h"
+#include "Blur.h"
+# define M_PI           3.14159265358979323846  /* pi */
 
 int main(int argc, char *argv[])
 {
@@ -148,6 +150,34 @@ int main(int argc, char *argv[])
 			imshow("Original", origin);
 			imshow("Detect edge by prewitt", destinationImage);
 
+		}
+		else if (strcmp(argv[1], "--rotateN") == 0)
+		{
+		imshow("Original", origin);
+		PixelInterpolate* interpolator = NULL;
+
+		if (strcmp(argv[3], "--bl") == 0)
+			interpolator = new BilinearInterpolate;
+		else if (strcmp(argv[3], "--nn") == 0)
+			interpolator = new NearestNeighborInterpolate;
+
+
+
+		if (interpolator != NULL)
+		{
+			float angle = (float)atof(argv[4]);
+			angle = M_PI * (angle / 180);
+			GeometricTransformer transformer;
+			Mat rotatedImage(origin.size(), origin.type(), Scalar(0));
+			transformer.RotateUnkeepImage(origin, rotatedImage, angle, interpolator);
+			imshow("Rotate", rotatedImage);
+		}
+
+		/*Mat exam = origin.clone();
+		Point2f center(origin.cols / 2, origin.rows / 2);
+		Mat matRot = getRotationMatrix2D(center, angle, 1);
+		warpAffine(origin, exam, matRot, origin.size());
+		imshow("Exam", exam);*/
 		}
 		else if (strcmp(argv[1], "--mean") == 0)
 		{

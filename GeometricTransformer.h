@@ -376,6 +376,16 @@ int GeometricTransformer::Scale(const Mat &srcImage,
 	delete transformer;
 	return 1;
 }
+
+inline int GeometricTransformer::RotateUnkeepImage(const Mat& srcImage, Mat& dstImage, float angle, PixelInterpolate* interpolator)
+{
+	AffineTransform* transformer = new AffineTransform;
+	transformer->Rotate(angle);
+	this->Transform(srcImage, dstImage, transformer, interpolator);
+	delete transformer;
+	return 1;
+}
+
 int GeometricTransformer::Flip(const Mat& srcImage, Mat& desImage,int Ox,int Oy, PixelInterpolate* interpolator)
 {
 	if (srcImage.empty() == true)
