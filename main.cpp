@@ -1,8 +1,8 @@
-﻿#include "Converter.h"
+﻿
+#include "Converter.h"
 #include "ColorTransformer.h"
 #include "EdgeDetector.h"
 #include "GeometricTransformer.h"
-#include "Blur.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,20 +33,19 @@ int main(int argc, char *argv[])
 		else if (strcmp(argv[1], "--gray2rgb") == 0)
 		{
 			//Show Original image
-			origin = imread(fileinput, CV_LOAD_IMAGE_GRAYSCALE);
 			imshow("Original Image", origin);
 
-			Mat gray2rgb = origin.clone();
+			Mat gray2rgb;
 			//Xử lý ảnh bằng hàm tự viết
-			/*if (converter.Convert(origin, gray2rgb, 1) == 1) {
+			if (converter.Convert(origin, gray2rgb, 2) == 1) {
 				cout << "Error ...";
-			};*/
+			};
 			imshow("Result Image", gray2rgb);
 
 			//Dùng công cụ open CV tạo ra ảnh ví dụ
-			/*Mat exam;
+			Mat exam;
 			cvtColor(origin, exam, CV_GRAY2BGR);
-			imshow("Exam Image", exam);*/
+			imshow("Exam Image", exam);
 		}
 		else if (strcmp(argv[1], "--rgb2hsv") == 0)
 		{
@@ -139,62 +138,16 @@ int main(int argc, char *argv[])
 		}
 		else if (strcmp(argv[1], "--prewitt") == 0)
 		{
-			Mat grayOrigin;
-			converter.RGB2GrayScale(origin, grayOrigin);
-			// Edge dectection by Prewitt
-			EdgeDetector prewitt;
-			Mat destinationImage;
-			prewitt.DetectEdge(grayOrigin, destinationImage, 3, 3, 2);
-			imshow("Original", origin);
-			imshow("Detect edge by prewitt", destinationImage);
+			if (origin.channels() == 1)
+			{
+				// Edge dectection by Prewitt
+				EdgeDetector prewitt;
+				Mat destinationImage;
+				prewitt.DetectEdge(origin, destinationImage, 3, 3, 2);
+				imshow("Original", origin);
+				imshow("Detect edge by prewitt", destinationImage);
 
-		}
-		else if (strcmp(argv[1], "--mean") == 0)
-		{
-		//Hiện ảnh gốc
-		imshow("Original", origin);
-
-		//Xử lý tham số truyền vào
-		int kWidth = int(atof(argv[3]));
-		int kHeigth = int(atof(argv[4]));
-
-		//Xử lý bằng Blur
-		Mat mean;
-		Blur blur;
-		blur.BlurImage(origin, mean, kWidth, kHeigth, 0);
-
-		//Hiện ảnh kết quả
-		imshow("Result (Mean)", mean);
-
-		}
-		else if (strcmp(argv[1], "--gauss") == 0)
-		{
-		//Hiện ảnh gốc
-		imshow("Original", origin);
-
-		//Xử lý tham số truyền vào
-		int kWidth = int(atof(argv[3]));
-		int kHeigth = int(atof(argv[4]));
-
-		//Xử lý bằng Blur
-		Mat mean;
-		Blur blur;
-		blur.BlurImage(origin, mean, kWidth, kHeigth, 2);
-
-		//Hiện ảnh kết quả
-		imshow("Result (Gauss)", mean);
-
-		}
-		else if (strcmp(argv[1], "--sobel") == 0)
-		{
-		Mat grayOrigin;
-		converter.RGB2GrayScale(origin, grayOrigin);
-		// Edge dectection by Prewitt
-		EdgeDetector sobel;
-		Mat destinationImage;
-		sobel.DetectEdge(grayOrigin, destinationImage, 3, 3, 1);
-		imshow("Original", origin);
-		imshow("Detect edge by sobel", destinationImage);
+			}
 		}
 		else if (strcmp(argv[1], "--zoom") == 0)
 		{
@@ -208,15 +161,19 @@ int main(int argc, char *argv[])
 			if (interpolator != NULL)
 			{
 				float sx = (float)atof(argv[4]);
-				float sy = (float)atof(argv[5]);
+				// float sy = (float)atof(argv[5]);
 				GeometricTransformer transformer;
-				Mat zoomedImage = Mat(int(origin.rows * sy), int(origin.cols * sx), origin.type(), Scalar(0));
-				transformer.Scale(origin, zoomedImage, sx, sy, interpolator);
+				Mat zoomedImage = Mat(int(origin.rows * sx), int(origin.cols * sx), origin.type(), Scalar(0));
+				transformer.Scale(origin, zoomedImage, sx, sx, interpolator);
 
 				imshow("Original", origin);
 				imshow("Zoom", zoomedImage);
 			}
 
+		}
+		else if (strcmp(argv[1], "--flip") == 0)
+		{
+			
 		}
 		else
 		{
