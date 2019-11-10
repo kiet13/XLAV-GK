@@ -130,14 +130,35 @@ int ColorTransformer::ChangeBrighness(const Mat& sourceImage, Mat& destinationIm
 		if (lookup[i] > 255) lookup[i] = 255;
 		if (lookup[i] < 0) lookup[i] = 0;
 	}
-
-	for (int y = 0; y < nr; y++) {
-		for (int x = 0; x < nc; x++)
+	
+	if(sourceImage.channels() == 1)// 1 kenh mau
+	{
+		for (int y = 0; y < nr; y++) {
+			for (int x = 0; x < nc; x++)
+			{
+				Scalar intensity = sourceImage.at<uchar>(y, x);
+				int s = intensity[0];
+				s = lookup[s];
+				destinationImage.at<uchar>(y, x) = s;
+			}
+		}
+	}
+	
+	if (sourceImage.channels() == 3) // 3 kenh mau
+	{
+		destinationImage = Mat(sourceImage.rows, sourceImage.cols, CV_8UC3, Scalar(0));
+		for (int i = 0; i < sourceImage.rows; i++)
 		{
-			Scalar intensity = sourceImage.at<uchar>(y, x);
-			int s = intensity[0];
-			s = lookup[s];
-			destinationImage.at<uchar>(y, x) = s;
+			for (int j = 0; j < sourceImage.cols; j++)
+			{
+				short newB = sourceImage.at<Vec3b>(i, j)[0] ; newB = lookup[newB];
+				short newG = sourceImage.at<Vec3b>(i, j)[1] ; newG = lookup[newG];
+				short newR = sourceImage.at<Vec3b>(i, j)[2] ; newR = lookup[newR];
+				
+				destinationImage.at<Vec3b>(i, j)[0] = (uint8_t)newB;
+				destinationImage.at<Vec3b>(i, j)[1] = (uint8_t)newG;
+				destinationImage.at<Vec3b>(i, j)[2] = (uint8_t)newR;
+			}
 		}
 	}
 
